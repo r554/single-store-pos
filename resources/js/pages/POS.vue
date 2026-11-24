@@ -18,14 +18,6 @@
                         Cari Produk
                     </span>
                 </BaseButton>
-                <BaseButton
-                    variant="secondary"
-                    :loading="reloading"
-                    title="Tarik ulang katalog dari server"
-                    @click="reloadCatalog"
-                >
-                    Muat Ulang
-                </BaseButton>
                 <button
                     type="button"
                     class="flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wide transition"
@@ -40,6 +32,17 @@
                         <span class="relative inline-flex h-2 w-2 rounded-full" :class="shiftState.shift ? 'bg-white' : 'bg-amber-400'"></span>
                     </span>
                     {{ shiftState.shift ? 'Shift Aktif' : 'Buka Shift' }}
+                </button>
+                <button
+                    type="button"
+                    class="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 text-slate-500 transition hover:bg-slate-100 disabled:opacity-40 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700"
+                    :title="reloading ? 'Memuat…' : 'Tarik ulang katalog dari server'"
+                    :disabled="reloading"
+                    @click="reloadCatalog"
+                >
+                    <svg class="h-5 w-5" :class="reloading ? 'animate-spin' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
                 </button>
                 <button
                     type="button"
@@ -102,7 +105,8 @@
             </span>
         </div>
 
-        <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <div class="grid min-h-0 flex-1 gap-4 xl:grid-cols-12">
+            <div class="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800 xl:col-span-9">
             <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3.5 dark:border-slate-700">
                 <div class="flex items-center gap-2.5">
                     <h2 class="text-sm font-bold uppercase tracking-wide text-slate-800 dark:text-slate-100">Transaksi</h2>
@@ -194,59 +198,70 @@
                 </div>
                 </div>
             </div>
+            </div>
 
-            <div class="shrink-0 border-t-2 border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-700 dark:bg-slate-900/40">
-                <div class="mb-3 grid grid-cols-3 gap-3">
-                    <div class="rounded-lg border border-slate-200 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-800">
-                        <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Subtotal</p>
-                        <p class="mt-0.5 text-sm font-bold text-slate-700 dark:text-slate-200">{{ formatRupiah(subtotal) }}</p>
+            <!-- Kartu ringkasan pembayaran -->
+            <div class="flex min-h-0 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800 xl:col-span-3">
+                <div class="border-b border-slate-200 px-4 py-3.5 dark:border-slate-700">
+                    <h2 class="text-sm font-bold uppercase tracking-wide text-slate-800 dark:text-slate-100">Ringkasan</h2>
+                </div>
+
+                <div class="flex-1 space-y-3 px-4 py-4">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Subtotal</span>
+                        <span class="text-sm font-bold text-slate-700 tabular-nums dark:text-slate-200">{{ formatRupiah(subtotal) }}</span>
                     </div>
-                    <div class="rounded-lg border border-slate-200 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-800">
-                        <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Diskon (Rp)</p>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Diskon (Rp)</span>
                         <input
                             v-model.number="discount"
                             type="number"
                             min="0"
                             placeholder="0"
-                            class="mt-0.5 w-full border-0 bg-transparent p-0 text-sm font-bold text-slate-700 focus:outline-none dark:text-slate-200"
+                            class="w-28 rounded border border-slate-200 bg-slate-50 px-2 py-1 text-right text-sm font-bold text-slate-700 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
                             @focus="$event.target.select()"
                         />
                     </div>
-                    <div class="rounded-lg border border-slate-200 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-800">
+                    <div class="flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 dark:border-slate-600 dark:bg-slate-800">
                         <label class="flex cursor-pointer items-center gap-2 select-none">
                             <input
                                 v-model="taxEnabled"
                                 type="checkbox"
                                 class="h-4 w-4 cursor-pointer accent-indigo-600"
                             />
-                            <span class="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                            <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                                 PPN 10%
                             </span>
                         </label>
+                        <span class="text-sm font-bold text-slate-700 tabular-nums dark:text-slate-200">{{ formatRupiah(taxAmount) }}</span>
+                    </div>
+
+                    <div class="!mt-4 border-t border-dashed border-slate-200 pt-3 dark:border-slate-700">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Grand Total</span>
+                            <span class="text-lg font-extrabold text-slate-800 dark:text-slate-100">{{ formatRupiah(total) }}</span>
+                        </div>
                     </div>
                 </div>
-                <div
-                    class="flex flex-col items-center justify-center rounded-xl bg-slate-900 px-5 py-4 dark:bg-slate-950"
-                >
-                    <span class="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Total Bayar</span>
-                    <span class="mt-1 text-5xl font-black leading-none tracking-tight text-emerald-400 tabular-nums sm:text-6xl">
-                        {{ formatRupiah(total) }}
-                    </span>
-                    <span v-if="discount > 0 || taxAmount > 0" class="mt-1.5 text-[11px] text-slate-400">
-                        <span v-if="discount > 0">Diskon −{{ formatRupiah(discount) }}</span>
-                        <span v-if="discount > 0 && taxAmount > 0"> · </span>
-                        <span v-if="taxAmount > 0">PPN {{ Number(taxPercent) || 0 }}% {{ formatRupiah(taxAmount) }}</span>
-                    </span>
-                </div>
-                <BaseButton
-                    variant="primary"
-                    class="mt-3 w-full py-4 text-base font-extrabold uppercase tracking-wide"
-                    :disabled="cart.length === 0"
-                    @click="openPayment"
-                >
-                    Bayar Sekarang (Enter)
-                </BaseButton>
             </div>
+        </div>
+
+        <!-- Total Bayar berdiri sendiri di bawah -->
+        <div class="flex shrink-0 items-center justify-between gap-4 rounded-2xl bg-slate-900 px-5 py-4 dark:bg-slate-950">
+            <div class="flex flex-col">
+                <span class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Total Bayar</span>
+                <span class="text-4xl font-black leading-none tracking-tight text-emerald-400 tabular-nums sm:text-5xl">
+                    {{ formatRupiah(total) }}
+                </span>
+            </div>
+            <BaseButton
+                variant="primary"
+                class="shrink-0 px-10 py-4 text-base font-extrabold uppercase tracking-wide"
+                :disabled="cart.length === 0"
+                @click="openPayment"
+            >
+                Bayar Sekarang (Enter)
+            </BaseButton>
         </div>
 
         <!-- Modal cari produk -->
