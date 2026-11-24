@@ -3,11 +3,18 @@
 use App\Http\Controllers\Api\ActivityLogController;
 use App\Http\Controllers\Api\ApiTokenController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CatalogController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\SettingsController;
+use App\Http\Controllers\Api\ShiftController;
+use App\Http\Controllers\Api\SyncController;
+use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\TwoFactorController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
@@ -105,6 +112,38 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware('permission:activity.view')->group(function () {
         Route::get('/activity-logs', [ActivityLogController::class, 'index']);
+    });
+
+    // ===== POS (Kasir) =====
+
+    // Katalog & sync: dipakai PWA offline (katalog snapshot/delta + push outbox).
+    Route::middleware('permission:pos.sell')->group(function () {
+        Route::get('/pos/catalog', [CatalogController::class, 'index'])->name('pos.catalog');
+        Route::post('/pos/sync', [SyncController::class, 'push'])->name('pos.sync');
+        Route::post('/pos/transactions', [TransactionController::class, 'store'])->name('pos.transactions.store');
+        Route::get('/pos/transactions', [TransactionController::class, 'index'])->name('pos.transactions.index');
+        Route::get('/pos/shifts/active', [ShiftController::class, 'active'])->name('pos.shifts.active');
+        Route::post('/pos/shifts', [ShiftController::class, 'open'])->name('pos.shifts.open');
+        Route::post('/pos/shifts/{shift}/close', [ShiftController::class, 'close'])->name('pos.shifts.close');
+        Route::get('/pos/shifts/{shift}', [ShiftController::class, 'show'])->name('pos.shifts.show');
+        Route::get('/pos/reports', [ReportController::class, 'index'])->name('pos.reports');
+    });
+
+    Route::middleware('permission:products.view')->group(function () {
+        Route::get('/pos/products', [ProductController::class, 'index']);
+        Route::get('/pos/categories', [CategoryController::class, 'index']);
+    });
+    Route::middleware('permission:products.create')->group(function () {
+        Route::post('/pos/products', [ProductController::class, 'store']);
+        Route::post('/pos/categories', [CategoryController::class, 'store']);
+    });
+    Route::middleware('permission:products.update')->group(function () {
+        Route::put('/pos/products/{product}', [ProductController::class, 'update']);
+        Route::put('/pos/categories/{category}', [CategoryController::class, 'update']);
+    });
+    Route::middleware('permission:products.delete')->group(function () {
+        Route::delete('/pos/products/{product}', [ProductController::class, 'destroy']);
+        Route::delete('/pos/categories/{category}', [CategoryController::class, 'destroy']);
     });
 });
 

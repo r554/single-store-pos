@@ -34,3 +34,6 @@ composer.phar
 /vite.config.js.timestamp.php
 
 /database/testing.sqlite*
+
+# Print agent: dump bytes printer (hasil tes lokal).
+/print-agent/*.bin

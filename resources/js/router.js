@@ -47,6 +47,24 @@ const routes = [
                 meta: { title: 'Dashboard' },
             },
             {
+                path: 'pos',
+                name: 'pos',
+                component: () => import('./pages/POS.vue'),
+                meta: { title: 'Kasir', permission: 'pos.sell' },
+            },
+            {
+                path: 'products',
+                name: 'products',
+                component: () => import('./pages/Products.vue'),
+                meta: { title: 'Produk', permission: 'products.view' },
+            },
+            {
+                path: 'reports',
+                name: 'reports',
+                component: () => import('./pages/Reports.vue'),
+                meta: { title: 'Laporan', permission: 'pos.sell' },
+            },
+            {
                 path: 'profile',
                 name: 'profile',
                 component: () => import('./pages/Profile.vue'),

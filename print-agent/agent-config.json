@@ -1,0 +1,9 @@
+{
+    "printer_url": "file://receipt-last.bin",
+    "paper_width": 80,
+    "store_name": "Single Store",
+    "store_address": "Jl. Contoh No. 1",
+    "store_phone": "0812-0000-0000",
+    "receipt_footer": "Terima kasih atas kunjungan Anda!",
+    "char_delay_ms": 0
+}

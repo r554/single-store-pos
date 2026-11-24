@@ -1,8 +1,8 @@
 <template>
-    <div class="min-h-screen bg-slate-100 dark:bg-slate-900">
+    <div :class="route.name === 'pos' ? 'h-screen overflow-hidden bg-slate-100 dark:bg-slate-900' : 'min-h-screen bg-slate-100 dark:bg-slate-900'">
         <aside
             class="fixed inset-y-0 left-0 z-40 w-64 transform border-r border-slate-800 bg-slate-900 transition-transform duration-200"
-            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+            :class="focusMode || !sidebarOpen ? '-translate-x-full' : 'translate-x-0'"
         >
             <div class="flex h-16 items-center gap-3 border-b border-slate-800 px-5">
                 <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500 text-sm font-bold text-white">
@@ -97,8 +97,11 @@
 
         <div v-if="sidebarOpen" class="fixed inset-0 z-30 bg-slate-900/50 lg:hidden" @click="sidebarOpen = false" />
 
-        <div :class="sidebarOpen ? 'lg:pl-64' : ''">
-            <header class="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur sm:px-6 dark:border-slate-700 dark:bg-slate-800/90">
+        <div :class="['transition-[padding] duration-200', focusMode ? '' : sidebarOpen ? 'lg:pl-64' : '', route.name === 'pos' ? 'flex h-screen flex-col overflow-hidden' : '']">
+            <header
+                v-if="!focusMode"
+                class="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur sm:px-6 dark:border-slate-700 dark:bg-slate-800/90"
+            >
                 <div class="flex items-center gap-2">
                     <button
                         class="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
@@ -221,8 +224,8 @@
                 </div>
             </header>
 
-            <main class="p-4 sm:p-6">
-                <div class="mb-5 flex flex-col gap-1">
+            <main :class="route.name === 'pos' ? 'flex min-h-0 flex-1 flex-col overflow-hidden' : 'p-4 sm:p-6'">
+                <div v-if="route.name !== 'pos'" class="mb-5 flex flex-col gap-1">
                     <h1 class="text-xl font-bold text-slate-900 dark:text-slate-100">{{ pageTitle }}</h1>
                     <p v-if="route.name === 'dashboard'" class="text-sm text-slate-500 dark:text-slate-400">
                         Selamat datang, {{ user?.name }}
@@ -243,7 +246,7 @@
                     </RouterLink>
                 </div>
 
-                <RouterView />
+                <RouterView :class="route.name === 'pos' ? 'flex min-h-0 flex-1 flex-col' : ''" />
             </main>
         </div>
     </div>
@@ -265,10 +268,46 @@ const toast = useToast();
 const isDark = computed(() => document.documentElement.classList.contains('dark'));
 
 const sidebarOpen = ref(false);
+const focusMode = ref(false);
 const loggingOut = ref(false);
 const search = ref('');
 const userMenuOpen = ref(false);
 const user = computed(() => state.user);
+
+/** Toggle mode fokus + fullscreen lewat F11 (khusus halaman POS / kasir). */
+async function handleKeydown(event) {
+    if (event.key === 'F11' && route.name === 'pos') {
+        event.preventDefault();
+        focusMode.value = !focusMode.value;
+
+        try {
+            if (focusMode.value && ! document.fullscreenElement) {
+                await document.documentElement.requestFullscreen();
+            } else if (! focusMode.value && document.fullscreenElement) {
+                await document.exitFullscreen();
+            }
+        } catch {
+            // Fullscreen ditolak browser (mis. tanpa gesture) — mode fokus tetap jalan.
+        }
+    }
+}
+
+/** Sinkronkan mode fokus saat user keluar fullscreen via Escape. */
+function handleFullscreenChange() {
+    if (! document.fullscreenElement && focusMode.value) {
+        focusMode.value = false;
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('keydown', handleKeydown);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('keydown', handleKeydown);
+    document.removeEventListener('fullscreenchange', handleFullscreenChange);
+});
 
 // Desktop: sidebar terbuka secara default. Mobile: tertutup.
 const largeScreenQuery = window.matchMedia('(min-width: 64rem)');
@@ -328,6 +367,29 @@ const menuGroups = [
                 name: 'dashboard',
                 label: 'Dashboard',
                 icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10" /></svg>',
+            },
+        ],
+    },
+    {
+        caption: 'Kasir',
+        items: [
+            {
+                name: 'pos',
+                label: 'Kasir',
+                permission: 'pos.sell',
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 17a1 1 0 100 2 1 1 0 000-2zm-9 0a1 1 0 100 2 1 1 0 000-2z" /></svg>',
+            },
+            {
+                name: 'products',
+                label: 'Produk',
+                permission: 'products.view',
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>',
+            },
+            {
+                name: 'reports',
+                label: 'Laporan',
+                permission: 'pos.sell',
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-6m3 6v-4m3.5-9.5h-15A1.5 1.5 0 003 7.5v11A1.5 1.5 0 004.5 20h15a1.5 1.5 0 001.5-1.5v-11A1.5 1.5 0 0018.5 6.5z" /></svg>',
             },
         ],
     },

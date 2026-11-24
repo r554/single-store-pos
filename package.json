@@ -16,7 +16,10 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
+        "dexie": "^4.4.7",
         "sweetalert2": "^11.26.25",
+        "uuid": "^14.0.3",
+        "vite-plugin-pwa": "^2.0.0",
         "vue": "^3.5.46",
         "vue-router": "^5.5.1"
     }
